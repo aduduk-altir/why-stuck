@@ -1,0 +1,5 @@
+**/.next
+**/build
+**/coverage
+.ts-trace
+pnpm-lock.yaml
