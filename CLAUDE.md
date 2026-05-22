@@ -58,7 +58,18 @@ Applies to every `cd`, command argument, or path string passed to the Bash tool.
 
 ---
 
+## Timeline — Always Append
+
+`timeline.md` is the running demo cheat-sheet for this hackathon. **After every notable
+action** (scaffold step, new feature, design decision, deploy, fix), append a one-line
+bullet under today's date heading. Newest at the bottom. Short — no paragraphs, no code
+blocks. This is not optional; the user may show it on the demo.
+
+What counts as notable: anything you'd want to say out loud during a demo walkthrough.
+What doesn't: typo fixes, formatting tweaks, intermediate failed attempts.
+
 ## Before Reporting Completion
 
 - For backend changes: `pnpm build` must succeed and `pnpm lint` must pass.
 - For changes that touch the API contract with the client SPA: state in the response which client-side change is needed in the chip1 client repo. Don't assume the user will infer it.
+- Append a `timeline.md` entry for the change (see "Timeline — Always Append" above).
