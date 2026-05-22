@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build:deck": "marp deck.md -o public/deck.html",
+    "build": "pnpm build:deck && next build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -17,6 +18,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@marp-team/marp-cli": "^4.4.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

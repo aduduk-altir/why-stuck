@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { openai } from '@ai-sdk/openai';
 import { convertToModelMessages, streamText, type UIMessage } from 'ai';
-import { ChatRequestSchema } from '@/lib/schemas';
+import { ChatRequestSchema, type UiContext } from '@/lib/schemas';
 import { corsHeaders, handleCorsPreflight, isAllowedOrigin } from '@/lib/cors';
 import { env } from '@/lib/env';
 
@@ -25,15 +25,31 @@ function loadKnowledgeBase(): string {
     .join('\n\n---\n\n');
 }
 
-function buildSystemPrompt(kb: string, uiContext: unknown): string {
+function buildSystemPrompt(kb: string, uiContext: UiContext | undefined): string {
   const uiContextBlock =
     uiContext === undefined
       ? '(no UI context provided)'
       : JSON.stringify(uiContext, null, 2);
 
+  const trigger = uiContext?.trigger ?? 'user';
+  const target = uiContext?.triggerTarget;
+  const button = uiContext?.triggerButton;
+  const triggerDescriptor = button
+    ? `button "${button.label}" (context: ${button.context}${button.disabled ? ', disabled' : ''})`
+    : target
+      ? `"${target}"`
+      : '';
+  const proactiveBlock =
+    trigger === 'user'
+      ? ''
+      : `
+# Conversation opened proactively — IMPORTANT
+This chat was NOT started by the user typing a question. The widget detected the user was stuck (trigger: ${trigger}${triggerDescriptor ? `, on ${triggerDescriptor}` : ''}) and opened this conversation on their behalf. Any "user" message you see is a synthesized placeholder, not something the user wrote. Your very first reply must lead with the diagnosis — name the blocker and the exact next action in the opening sentence. If a disabled button was rage-clicked, explain *why* it is disabled (missing required fields, wrong status, no row selected, etc.) and what to do next. Do not greet, do not say "I can help with that", do not ask "how can I help" — just diagnose.
+`;
+
   return `You are an in-app support agent embedded inside a complex web application.
 The user is stuck somewhere in a flow and needs the next concrete action to unstick them.
-
+${proactiveBlock}
 # Current UI state (scraped from the user's browser tab)
 ${uiContextBlock}
 

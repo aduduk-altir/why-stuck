@@ -46,6 +46,48 @@ export const VisibleFormSchema = z.object({
 export type VisibleForm = z.infer<typeof VisibleFormSchema>;
 
 /**
+ * One actionable button visible on the page. The `context` tag tells the agent
+ * *where* the button lives — a disabled "Update Status" on the FAB is a very
+ * different signal from a disabled "Save" in a modal footer. Preferred values
+ * for `context`:
+ *   - "fab"                   the floating round button itself
+ *   - "fab-menu"              an item inside the FAB popover menu
+ *   - "tabs"                  a tab in the tab strip
+ *   - "header"                page header / hero area
+ *   - "table-toolbar"         buttons above a table (e.g. "Add Row")
+ *   - "table-footer"          buttons under a table (pagination, totals)
+ *   - "table-row"             inline action on a row
+ *   - "row-menu"              right-click context menu on a row
+ *   - "selection-action-bar"  bar that appears when rows are selected
+ *   - "modal-footer"          confirm/cancel inside an open modal
+ *   - "stepper-footer"        next/back inside a multi-step wizard
+ *   - "inline"                anywhere else inline in the body
+ * Free-form string so the client can introduce new contexts without a server
+ * bump; document any new value in docs/api-contract.md.
+ */
+export const VisibleButtonSchema = z.object({
+  label: z.string(),
+  context: z.string(),
+  disabled: z.boolean().optional(),
+});
+
+export type VisibleButton = z.infer<typeof VisibleButtonSchema>;
+
+/**
+ * Heading-level text on the current page. Intentionally narrow: document title,
+ * primary H1, breadcrumb trail, and active tab label. Does NOT include arbitrary
+ * body text or table contents — that would balloon the prompt and leak PII.
+ */
+export const PageTitlesSchema = z.object({
+  document: z.string().optional(),
+  h1: z.string().optional(),
+  breadcrumbs: z.array(z.string()).optional(),
+  activeTab: z.string().optional(),
+});
+
+export type PageTitles = z.infer<typeof PageTitlesSchema>;
+
+/**
  * UiContext — what the widget scrapes from the host page before each turn.
  * passthrough() so the client can add ad-hoc keys without a server-side schema bump.
  */
@@ -59,8 +101,30 @@ export const UiContextSchema = z
     actionHistory: z.array(UiActionSchema).max(20).optional(),
     openModal: z.string().nullable().optional(),
     activeStep: ActiveStepSchema.nullable().optional(),
-    visibleButtons: z.array(z.string()).optional(),
+    visibleButtons: z.array(VisibleButtonSchema).optional(),
+    pageTitles: PageTitlesSchema.optional(),
     forms: z.array(VisibleFormSchema).optional(),
+    /**
+     * How this turn was initiated. `"user"` (or omitted) = the user typed/spoke.
+     * `"rage-click"` / `"error-toast"` = the widget detected a stuck state and
+     * synthesized the request. When non-"user", the server prompts the model to
+     * lead with the diagnosis instead of greeting.
+     */
+    trigger: z.enum(['user', 'rage-click', 'error-toast']).optional(),
+    /**
+     * Human-readable identifier of what the proactive trigger fired on — e.g. the
+     * button label that was rage-clicked, or the toast text that appeared.
+     */
+    triggerTarget: z.string().optional(),
+    /**
+     * Rich descriptor of the button that triggered a proactive open (rage-click).
+     * The bare `triggerTarget` label is ambiguous when the same label appears in
+     * multiple contexts (e.g. a disabled "Save" in a modal vs. an enabled "Save"
+     * in a panel). `triggerButton` carries the full `{ label, context, disabled }`
+     * so the agent can reason about *why* the click failed without scanning
+     * `visibleButtons` for a label match.
+     */
+    triggerButton: VisibleButtonSchema.optional(),
   })
   .passthrough();
 

@@ -63,12 +63,33 @@ whole thing into the system prompt. Recommended fields (all optional):
 | `actionHistory`  | `UiAction[]`    | Last ≤20 user actions in chronological order (see below)               |
 | `openModal`      | `string\|null`  | Name/title of the currently open modal, or `null`                      |
 | `activeStep`     | `ActiveStep\|null` | Current step in a wizard, e.g. `{ name: "Review", index: 2, total: 4 }` |
-| `visibleButtons` | `string[]`      | Accessible names of buttons in the active focus region                 |
+| `visibleButtons` | `VisibleButton[]` | Buttons visible in the active focus region — label + context + disabled state. See below. |
+| `pageTitles`     | `PageTitles`    | Heading-level text on the page (document title, H1, breadcrumbs, active tab). NOT body or table content. See below. |
 | `forms`          | `VisibleForm[]` | All forms currently mounted on the page — see below                    |
+| `trigger`        | `"user" \| "rage-click" \| "error-toast"` | How this turn was initiated. Omit (or send `"user"`) for normal typed/spoken requests. Set to `"rage-click"` when the widget auto-opens after detecting a stuck state. |
+| `triggerTarget`  | `string`        | Human-readable label of what the proactive trigger fired on — e.g. the button text that was rage-clicked. Only meaningful when `trigger !== "user"`. |
+| `triggerButton`  | `VisibleButton` | Rich descriptor of the button that fired the proactive trigger — `{ label, context, disabled }`. Strictly richer than `triggerTarget`; send both for safety. |
 
 The widget can add any extra keys it wants (`route`, `userId`, `featureFlags`, …) — the
 server just inlines them into the prompt. Treat this as "stuff the model should see," not
 a typed API.
+
+### Proactive triggers — what the server does
+
+When `uiContext.trigger` is anything other than `"user"`, the server prepends a block to
+the system prompt instructing the model to skip greetings and lead with the diagnosis in
+the first sentence. The client is expected to have:
+
+1. Detected the stuck state (e.g. ≥3 clicks on the same disabled button within ~1.5s).
+2. Opened the chat panel programmatically.
+3. Sent a synthesized first user message (text is irrelevant — the model is told to ignore
+   it). Recommended placeholder: `"What's blocking me on this page right now?"`.
+4. Set both `triggerTarget` (label) and `triggerButton` (`{ label, context, disabled }`) so
+   the server can describe the click site to the model. When `triggerButton.disabled` is
+   true, the system prompt explicitly tells the model to explain *why* the button is disabled.
+
+The widget should keep `trigger` set to `"user"` (or omit it) on every subsequent turn in
+the same conversation — the proactive instruction only applies to the opening reply.
 
 ### `UiAction`
 
@@ -107,6 +128,48 @@ type VisibleForm = {
 };
 ```
 
+### `VisibleButton`
+
+```ts
+type VisibleButton = {
+  label: string;            // accessible name of the button (text content or aria-label)
+  context: string;          // where this button is rendered — see preferred values below
+  disabled?: boolean;       // true if the button is non-interactive (aria-disabled or disabled attr)
+};
+```
+
+The bare label is rarely enough — "Save" appears in panel toolbars, modal footers, and stepper footers, with very different unstick instructions for each. `context` resolves that. **Preferred values:**
+
+| `context`                | Where the button lives                                                                |
+| ------------------------ | ------------------------------------------------------------------------------------- |
+| `"fab"`                  | The floating round button itself (bottom-right of detail pages)                       |
+| `"fab-menu"`             | An item inside the FAB popover menu                                                   |
+| `"tabs"`                 | A tab in the page's tab strip                                                         |
+| `"header"`               | Page header / hero area (rare — most pages don't have header actions)                 |
+| `"table-toolbar"`        | Buttons above a table (e.g. "Add Row")                                                |
+| `"table-footer"`         | Buttons under a table (pagination, totals)                                            |
+| `"table-row"`            | Inline action on a single row                                                         |
+| `"row-menu"`             | Right-click context menu on a row                                                     |
+| `"selection-action-bar"` | Bar that appears at the bottom of a table when rows are selected                      |
+| `"modal-footer"`         | Confirm/Cancel inside an open modal                                                   |
+| `"stepper-footer"`       | Next/Back inside a multi-step wizard                                                  |
+| `"inline"`               | Anywhere else inline in the page body                                                 |
+
+The schema accepts any string, so the client may introduce new values. **Document any new value in this table** before shipping it — drift gets caught at code-review time, not runtime.
+
+### `PageTitles`
+
+```ts
+type PageTitles = {
+  document?: string;       // document.title (browser tab text)
+  h1?: string;             // primary H1 in the main region (e.g. "RFQ #12345")
+  breadcrumbs?: string[];  // breadcrumb trail, root → current (e.g. ["Sales", "RFQs", "RFQ #12345"])
+  activeTab?: string;      // label of the currently active tab (e.g. "Sourcing Analysis")
+};
+```
+
+This is intentionally narrow: **only heading-level text**, never body content or table rows. Goal is to give the model the page-identity signal it would otherwise have to infer from `pathname` alone, while keeping the prompt tight and free of PII.
+
 Used when **multiple forms can be mounted at once** — e.g. a Customer Edit modal opened over a Sales Order page. `formState` and `errors` remain a snapshot of the *focused* form, but `forms[]` enumerates every form on the page so the agent can disambiguate ("the email error is on the Customer modal, not the Sales Order form behind it"). The `name` field must match the `target` of a `submit` action so the model can correlate a submit event with the form definition.
 
 ## Example request
@@ -132,13 +195,26 @@ Content-Type: application/json
     "errors": { "email": "Email is required" },
     "openModal": "Customer Edit",
     "activeStep": null,
-    "visibleButtons": ["Save", "Cancel", "Delete"],
+    "visibleButtons": [
+      { "label": "Save",   "context": "modal-footer", "disabled": true },
+      { "label": "Cancel", "context": "modal-footer" },
+      { "label": "Delete", "context": "modal-footer" }
+    ],
+    "pageTitles": {
+      "document": "Edit Customer — Acme | Chip1 CRM",
+      "h1": "Acme",
+      "breadcrumbs": ["Customers", "Acme", "Edit"],
+      "activeTab": "General"
+    },
     "actionHistory": [
       { "type": "navigate", "target": "/customers/123", "timestamp": 1747900000000 },
       { "type": "click", "target": "Edit", "timestamp": 1747900005000 },
       { "type": "modal-open", "target": "Customer Edit", "timestamp": 1747900005100 },
       { "type": "click", "target": "Save", "timestamp": 1747900030000 }
-    ]
+    ],
+    "trigger": "rage-click",
+    "triggerTarget": "Save",
+    "triggerButton": { "label": "Save", "context": "modal-footer", "disabled": true }
   }
 }
 ```

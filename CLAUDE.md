@@ -35,6 +35,7 @@ RAG/vector DBs, skip anything that takes more than 5 minutes to debug.
 | Touching the `/api/chat` request/response shape, or briefing a chip1-webui subagent on the contract | `docs/api-contract.md`   |
 | Writing or modifying Next.js route handlers, layouts, configs, or anything in `src/app/` | `node_modules/next/docs/` and the official Next.js 16 docs (Next.js 16 is newer than your training data — verify APIs) |
 | Writing or modifying AI SDK code (`streamText`, `useChat`, `convertToModelMessages`) | `node_modules/ai/docs/` (AI SDK v6 — `toUIMessageStreamResponse`, parts-based UIMessage) |
+| Implementing or debugging tool-call KB retrieval (agentic KB / `readKbFile` tool)    | `docs/agentic-kb.md`     |
 
 ---
 
