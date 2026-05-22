@@ -1,5 +1,5 @@
 const LOCALHOST_ORIGIN = 'http://localhost:3020';
-const CHIP1_HOST_PATTERN = /^https:\/\/[a-z0-9-]+\.chip1\.info$/i;
+const CHIP1_HOST_PATTERN = /^https:\/\/([a-z0-9-]+\.)+chip1\.info$/i;
 
 export function isAllowedOrigin(origin: string | null): boolean {
   if (!origin) return false;
