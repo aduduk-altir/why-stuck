@@ -89,13 +89,39 @@ This is the internal CRM tool used by Chip1 sales and purchasing staff. The URL 
 
 ## Sales — RFQs (Requests for Quote)
 
+### Lists
 - `/sales/rfqs` — RFQ list. Shows all inbound customer requests for component pricing.
 - `/sales/rfqs/lines` — RFQ Lines list. Shows individual line items across all RFQs.
-- `/sales/rfqs/:rfqId` — RFQ Details. Shows details of a specific request.
-- `/sales/rfqs/:rfqId/line/:lineId` — RFQ Line Details. Shows a specific part request within an RFQ.
-- `/sales/rfqs/:rfqId/quotes` — RFQ Details, Quotes tab.
-- `/sales/rfqs/:rfqId/tasks/*` — RFQ Details, Tasks tab.
-- `/sales/rfqs/:rfqId/timeline/*` — RFQ Details, Timeline tab.
+
+### RFQ Details — full tab list (`/sales/rfqs/:rfqId`)
+Tabs as labeled in the UI (left → right), with the URL each lives at:
+
+- **RFQ Details** — `/sales/rfqs/:rfqId` (default tab, no trailing segment). Account, contacts, owner, shipping, IDs, tags.
+- **RFQ Lines** — `/sales/rfqs/:rfqId/lines`. Table of part-request lines for this RFQ.
+- **Sourcing Analysis** — `/sales/rfqs/:rfqId/sourcing` (sub-segments: `/summary`, `/sales-activity`, `/purchasing-activity`, `/market-activity`, `/stock`). Market-data dashboard scoped to this RFQ's parts. **Does not list sourcing requests** — see Offers tab below for that.
+- **Pricing** — `/sales/rfqs/:rfqId/pricing`. Pricing data for the first RFQ line.
+- **Offers** — `/sales/rfqs/:rfqId/offers`. Two stacked tables: **"Sourcing Requests Assigned"** at the top and **"Open Offers"** below. This is where you find the sourcing requests linked to this RFQ.
+- **Quotes** — `/sales/rfqs/:rfqId/quotes`. Quotes generated against this RFQ. Behind feature flag `rfq-quotes` (may be hidden).
+- **Orders** — `/sales/rfqs/:rfqId/orders`. Sales orders that came from this RFQ.
+- **Tasks** — `/sales/rfqs/:rfqId/tasks/*`.
+- **Documents** — `/sales/rfqs/:rfqId/documents` (behind `documents-tab` flag).
+- **Timeline** — `/sales/rfqs/:rfqId/timeline/*`.
+- **Related** — `/sales/rfqs/:rfqId/related` (behind `item-timeline-related-tabs` flag).
+
+There is **no tab simply named "Sourcing"** — the only sourcing-prefixed tab is "Sourcing Analysis", and it is a market dashboard, not a list of sourcing requests.
+
+### RFQ Line Details — full tab list (`/sales/rfqs/:rfqId/line/:lineId`)
+- **Line Details** — `/sales/rfqs/:rfqId/line/:lineId` (default).
+- **Part Details** — `/sales/rfqs/:rfqId/line/:lineId/part-details`.
+- **Sourcing Analysis** — `/sales/rfqs/:rfqId/line/:lineId/sourcing/*`.
+- **Pricing** — `/sales/rfqs/:rfqId/line/:lineId/pricing`.
+- **Offers** — `/sales/rfqs/:rfqId/line/:lineId/offers`. Same "Sourcing Requests Assigned" + "Open Offers" stack as the RFQ-level Offers tab, scoped to this line.
+- **Quotes** — `/sales/rfqs/:rfqId/line/:lineId/quotes`.
+- **Orders** — `/sales/rfqs/:rfqId/line/:lineId/orders`.
+- **Tasks** — `/sales/rfqs/:rfqId/line/:lineId/tasks/*`.
+- **Documents** — `/sales/rfqs/:rfqId/line/:lineId/documents`.
+- **Timeline** — `/sales/rfqs/:rfqId/line/:lineId/timeline/*`.
+- **Related** — `/sales/rfqs/:rfqId/line/:lineId/related` (flag-gated).
 
 ---
 
@@ -103,19 +129,33 @@ This is the internal CRM tool used by Chip1 sales and purchasing staff. The URL 
 
 - `/sales/quotes` — Quotes list. Shows price quotes sent to customers.
 - `/sales/quotes/active` — Active/open quotes.
-- `/sales/quotes/line/:quoteLineId` — Quote Line Details.
+- `/sales/quotes/line/:quoteLineId` — Quote Line Details. Tabs: **Line Details** (default), **Part Details** (`/part-details`), **Documents** (`/documents`, flag-gated), **Quotes** (`/quotes`). Behind `standalone-quote` flag.
+
+**There is no `/sales/quotes/:quoteId` detail page.** Quotes do not have their own multi-tab screen — only individual quote *lines* do. To work with quotes for a specific RFQ, go through that RFQ's **Quotes** tab.
 
 ---
 
 ## Sales — Orders
 
+### Lists
 - `/sales/orders` — Sales Orders list. Shows all confirmed customer orders.
 - `/sales/orders/lines` — Sales Order Lines list. Shows individual line items across all orders.
-- `/sales/orders/:orderId` — Order Details.
-- `/sales/orders/:orderId/line/:lineId` — Order Line Details.
-- `/sales/orders/:orderId/rfqs` — Order Details, RFQs tab.
-- `/sales/orders/:orderId/tasks/*` — Order Details, Tasks tab.
-- `/sales/orders/:orderId/timeline/*` — Order Details, Timeline tab.
+
+### Order Details — full tab list (`/sales/orders/:orderId`)
+- **Order Details** — `/sales/orders/:orderId` (default).
+- **Order Lines** — `/sales/orders/:orderId/orderLines`.
+- **Documents** — `/sales/orders/:orderId/documents`.
+- **RFQs** — `/sales/orders/:orderId/rfqs`. RFQs this order came from.
+- **Sourcing Analysis** — `/sales/orders/:orderId/sourcing`.
+- **Tasks** — `/sales/orders/:orderId/tasks/*`.
+- **Timeline** — `/sales/orders/:orderId/timeline/*`.
+- **Shipments** — `/sales/orders/:orderId/shipments`.
+- **Related** — `/sales/orders/:orderId/related` (flag-gated).
+
+Quality Control is enumerated in code but commented out — does not render.
+
+### Order Line Details (`/sales/orders/:orderId/line/:lineId`)
+Tabs: **Line Details** (default), **Part Details** (`/partDetails`), **Sourcing Analysis** (`/sourcing`), **Quality Control** (`/qualityControl`), **Documents**, **RFQs**, **Offers**, **Timeline**, **Tasks**, **Shipments**, **Related** (flag-gated).
 
 ---
 
@@ -137,15 +177,24 @@ This is the internal CRM tool used by Chip1 sales and purchasing staff. The URL 
 
 ## Purchasing — Sourcing Requests
 
+### Lists
 - `/purchasing/sourcing-requests` — Sourcing Requests list. Shows internal requests to procure components.
 - `/purchasing/sourcing-requests/offer-request` — Sourcing Requests filtered to offer requests.
 - `/purchasing/sourcing-requests/purchase-request` — Sourcing Requests filtered to purchase requests.
-- `/purchasing/sourcing-requests/:srId` — Sourcing Request Details.
-- `/purchasing/sourcing-requests/:srId/salesOrders` — SR Details, Sales Orders tab.
-- `/purchasing/sourcing-requests/:srId/sourcing` — SR Details, Sourcing Analysis tab.
-- `/purchasing/sourcing-requests/:srId/tasks/*` — SR Details, Tasks tab.
-- `/purchasing/sourcing-requests/:srId/timeline/*` — SR Details, Timeline tab.
-- `/purchasing/sourcing-requests/:srId/purchaseOrder/*` — SR Details, Purchase Orders tab.
+
+### Sourcing Request Details — full tab list (`/purchasing/sourcing-requests/:srId`)
+The URL segment and the tab label do not always match — watch for these mismatches:
+
+- **Line Details** — `/purchasing/sourcing-requests/:srId` (default).
+- **Part Details** — `/purchasing/sourcing-requests/:srId/partDetails`.
+- **Offers** — `/purchasing/sourcing-requests/:srId/offers`. Open offers for this request.
+- **Sourcing Analysis** — `/purchasing/sourcing-requests/:srId/sourcing`.
+- **Tasks** — `/purchasing/sourcing-requests/:srId/tasks/*`.
+- **Timeline** — `/purchasing/sourcing-requests/:srId/timeline/*`.
+- **Documents** — `/purchasing/sourcing-requests/:srId/documents`.
+- **Purchase Order** — `/purchasing/sourcing-requests/:srId/purchaseOrder/*`.
+- **RFQs** (label) — `/purchasing/sourcing-requests/:srId/salesRequests` (URL says `salesRequests` but the tab is labeled **"RFQs"**). Shows connected RFQ lines.
+- **Orders** (label) — `/purchasing/sourcing-requests/:srId/salesOrders` (URL says `salesOrders` but the tab is labeled **"Orders"**).
 
 ---
 
@@ -254,3 +303,47 @@ This is the internal CRM tool used by Chip1 sales and purchasing staff. The URL 
 
 - `/coming-soon` — Placeholder page for features not yet available.
 - `/link/:slug` — External link redirect (feature-gated).
+
+---
+
+## Cross-entity navigation: how to find X related to Y
+
+When the user asks "where do I find the sourcing requests for this RFQ" or similar, use these click paths. **Use the exact tab name** — many users (and the agent) confuse "Sourcing Analysis" with a sourcing-requests list, but they are different things.
+
+### From an RFQ
+- **Quotes for this RFQ** → RFQ Details → **Quotes** tab.
+- **Sourcing requests linked to this RFQ** → RFQ Details → **Offers** tab → "Sourcing Requests Assigned" table (NOT the "Sourcing Analysis" tab).
+- **Open supplier offers for this RFQ** → RFQ Details → **Offers** tab → "Open Offers" table.
+- **Sales orders generated from this RFQ** → RFQ Details → **Orders** tab.
+- **Pricing for this RFQ** → RFQ Details → **Pricing** tab (line-scoped pricing also at the RFQ Line's Pricing tab).
+- **Market data scoped to this RFQ's parts** → RFQ Details → **Sourcing Analysis** tab.
+
+### From a Sales Order
+- **RFQs this order came from** → Order Details → **RFQs** tab.
+- **Shipments for this order** → Order Details → **Shipments** tab.
+- **Market data for this order's parts** → Order Details → **Sourcing Analysis** tab.
+
+### From a Sourcing Request
+- **The RFQ(s) this SR is fulfilling** → SR Details → **RFQs** tab (URL segment is `salesRequests` but the tab label is "RFQs").
+- **The sales order(s) this SR is fulfilling** → SR Details → **Orders** tab (URL segment is `salesOrders` but the tab label is "Orders").
+- **Purchase orders placed for this SR** → SR Details → **Purchase Order** tab.
+- **Open offers on this SR** → SR Details → **Offers** tab.
+
+### From a Purchase Order line
+- **The sourcing request this PO line satisfies** → PO Details → click the line → **Sourcing Request** tab.
+
+### From an Account
+- **All RFQs for this account** → Account → **RFQs** tab.
+- **All quotes** → Account → **Quotes** tab (sub-segments: Active / Expired / All).
+- **All sales orders** → Account → **Orders** tab.
+- **All purchase orders** → Account → **Purchase Orders** tab (URL is camelCase `purchaseOrders`).
+- **All offers** → Account → **Offers** tab.
+- **Contacts at this account** → Account → **Contacts** tab.
+
+### From a Contact
+- **RFQs / Quotes / Orders this contact appears on** → Contact → **RFQs** / **Quotes** / **Orders** tab.
+
+### Things that do *not* exist
+- There is no Quote detail page (`/sales/quotes/:quoteId`). To work with a quote, navigate via the RFQ that produced it.
+- There is no Opportunity detail page. `/sales/opportunities` is list-only.
+- There is no tab simply named "Sourcing" on any entity — only "Sourcing Analysis" (and that's a market dashboard, not a sourcing-requests list).

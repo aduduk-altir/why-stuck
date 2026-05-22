@@ -114,6 +114,19 @@ This guide covers situations where a user gets stuck and what they should do nex
 **Stuck: "Contact email is required" error when requesting an offer from a supplier.**
 - The contact selected for this supplier does not have an email address on file. Go to the contact's profile, add a valid email, and then retry the request.
 
+**Stuck: What does the "Closed" filter on the RFQ Lines table do? Does it hide open items?**
+- The "Closed" filter (toggled via the "Show Closed" button) shows **both closed and open items together** — it does not restrict the table to only closed items. Turning it on widens the view to include closed lines alongside the open ones; turning it off hides closed lines so you see only open ones.
+
+**Stuck: How do I update the status of an RFQ?**
+- RFQs do not have an entity-level status — RFQ "status" is the status of its lines. On the RFQ Details page, open the **RFQ Lines** tab, select one or more line rows, then click the **FAB** (the round floating button at the bottom-right of the page) and choose **"Update Status"**. The "Update Status" item only appears on the FAB when at least one line is selected.
+- Alternative: right-click a single line row and choose "Update Status", or use the selection action bar that appears at the bottom of the lines table when rows are selected.
+
+**Stuck: How do I update the status of a single RFQ line?**
+- Open the RFQ Line Details page → click the **FAB** (bottom-right) → **"Update Status"**. Always visible (no row selection needed). The modal also shows the sub-status field when the chosen status requires one.
+
+**Stuck: Where are the sourcing requests related to this RFQ?**
+- They live on the **Offers** tab of the RFQ Details page, in the **"Sourcing Requests Assigned"** table at the top. They are not on the "Sourcing Analysis" tab — that tab is a market-data dashboard, not a list of sourcing requests.
+
 ---
 
 ## Sales Order Pages
@@ -142,6 +155,12 @@ This guide covers situations where a user gets stuck and what they should do nex
 **Stuck: "Past dates are not allowed" on Promised Delivery Date.**
 - The delivery date must be today or a future date. Clear the field or enter a date that is today or later.
 
+**Stuck: How do I update the status of a Sales Order?**
+- Sales Orders do not have an entity-level Update Status action — the order's status is derived from the statuses of its lines. To change it, open an **Order Line Details** page → click the **FAB** (bottom-right) → **"Update Status"**.
+
+**Stuck: How do I update the status of a single Sales Order line?**
+- Open the **Order Line Details** page → **FAB** → **"Update Status"**.
+
 ---
 
 ## Purchase Order Pages
@@ -167,6 +186,9 @@ This guide covers situations where a user gets stuck and what they should do nex
 **Stuck: PO Arrival Check form will not proceed past the first step.**
 - Step 1 requires: Boxes Condition, Number of Boxes (whole number), Weight, and Weight Unit — all must be filled in.
 
+**Stuck: How do I update the status of a Purchase Order?**
+- Purchase Orders do not have an entity-level Update Status action — the PO's status is derived from the statuses of its lines. To change it, open a **PO Line Details** page → **FAB** (bottom-right) → **"Update Status"**, or right-click a PO line row in the PO list and choose "Update Status".
+
 ---
 
 ## Sourcing Request Pages
@@ -179,6 +201,9 @@ This guide covers situations where a user gets stuck and what they should do nex
 
 **Stuck: "Buying Team or Buyers is required" error on a Sourcing Request or in the bulk team update modal.**
 - At least one team or at least one buyer must be selected before saving. Both cannot be empty.
+
+**Stuck: How do I update the status of a Sourcing Request?**
+- Open the Sourcing Request Details page → **FAB** (bottom-right) → **"Update Status"**. Also available by right-clicking a row in the Sourcing Requests list or using the bulk selection action bar when rows are selected.
 
 ---
 
@@ -263,6 +288,28 @@ This guide covers situations where a user gets stuck and what they should do nex
 
 **Stuck: Cannot save "Request Offer for Purchase" — Due Date error.**
 - The Due Date field is required. Select a date from the calendar.
+
+**Stuck: How do I update the status of an Offer?**
+- Open the Offer Details page → **FAB** (bottom-right) → **"Update Status"**. Also available by right-clicking an offer row in any list that shows offers (Offers list, RFQ → Offers tab, Sourcing Request → Offers tab, Order Line → Offers tab). The FAB menu options change based on the offer's current status.
+
+---
+
+## Account Pages — Stage / Status
+
+**Stuck: How do I update the status of an Account?**
+- Accounts have a field called **Stage**, not Status. To change it, open the Account Details page → **FAB** (bottom-right) → **"Update Stage"**. The modal asks for the new Stage and a reason.
+
+---
+
+## Quote Pages — Status
+
+**Stuck: How do I update the status of a Quote?**
+- Quotes do not have an Update Status action. Quote state transitions happen indirectly through other actions: Recommend / Unrecommend, Send Quote, Create Sales Order from this Quote, etc. To take those actions, right-click a quote row inside the RFQ's Quotes tab.
+
+**Stuck: Where are the bulk actions for Quotes? I can't find "Send Quote" or "Generate PDF" or "Create Sales Order".**
+- The bulk-action bar for Quotes only appears on the **RFQ Line Details → Quotes tab** (URL `/sales/rfqs/:rfqId/line/:lineId/quotes` — drill down one level past the RFQ). Select one or more quote rows; the footer action bar then shows **Generate Quote PDF**, **Create Sales Order(s)**, and **Send Quote(s)**.
+- These actions are **not available on the RFQ Details → Quotes tab** (one level up — `/sales/rfqs/:rfqId/quotes`) or on the standalone Quotes list (`/sales/quotes`). From those pages, use the row context menu (right-click) instead for per-quote actions.
+- "Send Quote(s)" is enabled only when **1 or 2** parent-quote rows are selected (not more). "Generate Quote PDF" needs at least one parent-quote row in the selection; selecting only quote-line sub-rows leaves the button disabled.
 
 ---
 

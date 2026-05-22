@@ -17,6 +17,9 @@ Lists every form in the CRM with all its fields, which are required, and what th
 ### troubleshooting.md
 A collection of specific stuck states and the exact steps to resolve each one. Check here first — if the user's situation matches an entry, give that answer directly.
 
+### fab-and-actions.md
+Documents where action buttons actually live in the CRM — primarily the FAB (floating round button at the bottom-right of every detail page), plus row context menus and selection action bars. Use this when the user asks "how do I update status", "where is the X button", or any "I can't find the action to do Y" question. **Most actions live on the FAB, not in a header toolbar — assume FAB first.**
+
 ---
 
 ## General guidance
@@ -25,4 +28,7 @@ A collection of specific stuck states and the exact steps to resolve each one. C
 - If the user is on a form that requires a contact to have a phone number (RFQs, Sales Orders), check whether the contact's phone is the blocker — this is the most common invisible blocker in the CRM.
 - Locked sections cannot be edited in their current status. Tell the user what status change is needed to unlock it.
 - "Coming Soon" pages are not yet released. No action is needed from the user.
+- When asked where to find an action button or how to perform an entity action (update status, create, approve, etc.), default to the **FAB** (bottom-right floating button on the detail page). The CRM does not use top-of-page action toolbars. See `fab-and-actions.md` for the per-entity menu.
+- For **bulk** actions on lists/tables (Update Status across many rows, Send Quote, Create Shipment from lines, etc.), the buttons live in a **footer action bar that only appears when ≥1 row is selected**. If the user "can't find" a bulk action, the most common cause is that no rows are selected yet. See `fab-and-actions.md` → "Selection action bars" for the per-table inventory.
+- "Update Status" for an RFQ, Sales Order, or Purchase Order at the entity level **does not exist** — those statuses are derived from their lines. The user must select lines on the Lines tab and update line statuses instead.
 - If the knowledge base does not cover the situation, say so plainly and ask one targeted question to narrow it down.
