@@ -118,8 +118,8 @@ This guide covers situations where a user gets stuck and what they should do nex
 - The "Closed" filter (toggled via the "Show Closed" button) shows **both closed and open items together** — it does not restrict the table to only closed items. Turning it on widens the view to include closed lines alongside the open ones; turning it off hides closed lines so you see only open ones.
 
 **Stuck: How do I update the status of an RFQ?**
-- RFQs do not have an entity-level status — RFQ "status" is the status of its lines. On the RFQ Details page, open the **RFQ Lines** tab, select one or more line rows, then click the **FAB** (the round floating button at the bottom-right of the page) and choose **"Update Status"**. The "Update Status" item only appears on the FAB when at least one line is selected.
-- Alternative: right-click a single line row and choose "Update Status", or use the selection action bar that appears at the bottom of the lines table when rows are selected.
+- RFQs do not have an entity-level status — RFQ "status" is the status of its lines. On the RFQ Details page, open the **RFQ Lines** tab, select one or more line rows (using the row checkboxes), then click the **FAB** (the round floating button at the bottom-right of the page) and choose **"Update Status"**. The "Update Status" item only appears on the FAB when at least one line is selected.
+- Alternative: use the **selection action bar** that appears at the bottom of the lines table when rows are selected. (Don't suggest right-click — it doesn't expose any useful actions in this CRM.)
 
 **Stuck: How do I update the status of a single RFQ line?**
 - Open the RFQ Line Details page → click the **FAB** (bottom-right) → **"Update Status"**. Always visible (no row selection needed). The modal also shows the sub-status field when the chosen status requires one.
@@ -187,7 +187,7 @@ This guide covers situations where a user gets stuck and what they should do nex
 - Step 1 requires: Boxes Condition, Number of Boxes (whole number), Weight, and Weight Unit — all must be filled in.
 
 **Stuck: How do I update the status of a Purchase Order?**
-- Purchase Orders do not have an entity-level Update Status action — the PO's status is derived from the statuses of its lines. To change it, open a **PO Line Details** page → **FAB** (bottom-right) → **"Update Status"**, or right-click a PO line row in the PO list and choose "Update Status".
+- Purchase Orders do not have an entity-level Update Status action — the PO's status is derived from the statuses of its lines. To change it, open a **PO Line Details** page → **FAB** (bottom-right) → **"Update Status"**.
 
 ---
 
@@ -203,7 +203,7 @@ This guide covers situations where a user gets stuck and what they should do nex
 - At least one team or at least one buyer must be selected before saving. Both cannot be empty.
 
 **Stuck: How do I update the status of a Sourcing Request?**
-- Open the Sourcing Request Details page → **FAB** (bottom-right) → **"Update Status"**. Also available by right-clicking a row in the Sourcing Requests list or using the bulk selection action bar when rows are selected.
+- Open the Sourcing Request Details page → **FAB** (bottom-right) → **"Update Status"**. For multiple SRs at once, use the bulk **selection action bar** on the SR list (select rows with their checkboxes first).
 
 ---
 
@@ -290,7 +290,7 @@ This guide covers situations where a user gets stuck and what they should do nex
 - The Due Date field is required. Select a date from the calendar.
 
 **Stuck: How do I update the status of an Offer?**
-- Open the Offer Details page → **FAB** (bottom-right) → **"Update Status"**. Also available by right-clicking an offer row in any list that shows offers (Offers list, RFQ → Offers tab, Sourcing Request → Offers tab, Order Line → Offers tab). The FAB menu options change based on the offer's current status.
+- Open the Offer Details page → **FAB** (bottom-right) → **"Update Status"**. The FAB menu options change based on the offer's current status.
 
 ---
 
@@ -304,11 +304,11 @@ This guide covers situations where a user gets stuck and what they should do nex
 ## Quote Pages — Status
 
 **Stuck: How do I update the status of a Quote?**
-- Quotes do not have an Update Status action. Quote state transitions happen indirectly through other actions: Recommend / Unrecommend, Send Quote, Create Sales Order from this Quote, etc. To take those actions, right-click a quote row inside the RFQ's Quotes tab.
+- Quotes do not have an Update Status action. Quote state transitions happen indirectly through other actions: Recommend / Unrecommend, Send Quote, Create Sales Order from this Quote, etc. To take those actions, open the quote (left-click the row to drill into the RFQ Line Details → Quotes tab) and use the **selection action bar** that appears at the bottom when one or more quote rows are checked.
 
 **Stuck: Where are the bulk actions for Quotes? I can't find "Send Quote" or "Generate PDF" or "Create Sales Order".**
 - The bulk-action bar for Quotes only appears on the **RFQ Line Details → Quotes tab** (URL `/sales/rfqs/:rfqId/line/:lineId/quotes` — drill down one level past the RFQ). Select one or more quote rows; the footer action bar then shows **Generate Quote PDF**, **Create Sales Order(s)**, and **Send Quote(s)**.
-- These actions are **not available on the RFQ Details → Quotes tab** (one level up — `/sales/rfqs/:rfqId/quotes`) or on the standalone Quotes list (`/sales/quotes`). From those pages, use the row context menu (right-click) instead for per-quote actions.
+- These actions are **not available on the RFQ Details → Quotes tab** (one level up — `/sales/rfqs/:rfqId/quotes`) or on the standalone Quotes list (`/sales/quotes`). To take a per-quote action from those pages, **left-click** the quote to drill into RFQ Line Details → Quotes tab, then use the selection action bar. (Right-click does not expose a useful menu — do not suggest it.)
 - "Send Quote(s)" is enabled only when **1 or 2** parent-quote rows are selected (not more). "Generate Quote PDF" needs at least one parent-quote row in the selection; selecting only quote-line sub-rows leaves the button disabled.
 
 ---

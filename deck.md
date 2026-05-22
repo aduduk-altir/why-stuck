@@ -48,16 +48,27 @@ Two repos, talking over HTTP — deliberately not a monorepo:
 ## Architecture
 
 ```
-┌──────────────────────┐         ┌────────────────────────┐
-│  chip1-webui widget  │ ──POST─▶│  why-stuck.vercel.app  │
-│  - scrapes uiContext │         │  /api/chat             │
-│  - useChat(transport)│ ◀stream─│  - KB injection        │
-│  - push-to-talk      │         │  - streamText (gpt-4o) │
-└──────────────────────┘         └────────────────────────┘
+┌────────────────────────────────────────┐         ┌───────────────────────────────┐
+│  HOST APP                              │         │  why-stuck.vercel.app         │
+│  today:    chip1-webui CRM             │         │  /api/chat                    │
+│  tomorrow: any React app               │         │                               │
+│                                        │         │                               │
+│   ┌────────────────────────────────┐   │ ─POST──>│   - uiContext → prompt        │
+│   │ @altir/why-stuck-widget (SDK)  │   │         │   - KB injection              │
+│   │ today:    vendored             │   │ <stream─│   - streamText (gpt-4.1-mini) │
+│   │ tomorrow: `pnpm add` it        │   │         │   - knowledge-base/*.md       │
+│   │                                │   │         │                               │
+│   │ - scrapeUiContext()            │   │         │                               │
+│   │ - useChat() transport          │   │         │                               │
+│   │ - rage-click detector          │   │         │                               │
+│   │ - push-to-talk                 │   │         │                               │
+│   └────────────────────────────────┘   │         │                               │
+└────────────────────────────────────────┘         └───────────────────────────────┘
 ```
 
-**No vector DB. No embeddings. No RAG framework.**
-The knowledge base is markdown files in a folder, concatenated into the system prompt.
+**The widget is its own SDK** — today vendored into chip1-webui, tomorrow `pnpm add @altir/why-stuck-widget`. Backend is host-agnostic; any React app can install the SDK and point it at the same `/api/chat`.
+
+**No vector DB. No embeddings. No RAG framework.** The KB is markdown files concatenated into the system prompt.
 
 ---
 
@@ -69,24 +80,31 @@ The agent never asks *"what page are you on?"* The payload tells it:
 | --- | --- |
 | `url` / `pathname` | Where they are |
 | `formState` / `errors` | Live Formik values + validation messages |
-| `openModal`, `activeStep`, `visibleButtons` | What's in focus right now |
 | `forms[]` | Every mounted form — disambiguates modal-over-page |
-| `actionHistory[]` | Last 20 user actions as a chronological story |
-| `trigger` | Typed question, rage-click, or error-toast |
+| `visibleButtons[]` | Each button = `{ label, context, disabled }` so the agent can say "disabled Save (modal-footer)" |
+| `pageTitles` / `openModal` / `activeStep` | Document/h1/breadcrumbs/active tab + current modal + wizard step |
+| `actionHistory[]` | Last 20 user actions, chronological — the journey, no PII |
+| `trigger` / `triggerButton` | "user" / "rage-click" / "error-toast" + the full button info when rage-click fired |
 
 > User: *"why can't I submit?"*
 > Agent: *"The Customer Edit modal's Email field is empty — fill it before clicking Save."*
 
 ---
 
-## Features shipped today
+## Build timeline
 
-- **Markdown KB injection** — `knowledge-base/*.md` (routing-map, form-rules, troubleshooting) stuffed into the system prompt per request
-- **Action history capture** — capture-phase click/submit listeners + history-API patch + modal event bridge, capped at 20 entries, no PII
-- **Multi-form awareness** — `forms[]` enumerates every mounted form so the agent can say "the error is on the Customer modal, not the Sales Order behind it"
-- **Push-to-talk voice input** — Web Speech API, interim transcripts type into the input live, no auto-send
-- **Proactive rage-click trigger** — 3+ clicks on the same element within 1.5s opens the widget with a "Looks like you're stuck — need help?" pill
-- **One-click incident report** — "Report an issue" captures to Sentry with full `uiContext` + `actionHistory` + transcript attached
+1. **Scaffold + deploy** — Next.js 16 + AI SDK v6, `/api/chat` live on Vercel in the first hour
+2. **KB written** — `routing-map.md` (60+ URLs), `form-rules.md`, `troubleshooting.md`, `00-index.md` — CRM source compressed into 4 markdown files
+3. **Push-to-talk voice** — Web Speech API, interim transcripts type into the input live
+4. **Action history** — capture-phase DOM listeners + history-API patch + modal event bridge, capped at 20, no PII
+5. **Multi-form awareness** — `forms[]` enumerates every mounted form; `resolveFormName` keeps submit-capture and the form list aligned
+6. **Proactive rage-click trigger** — 3+ clicks on the same target opens the widget, server skips greeting and leads with the diagnosis
+7. **Sentry "Report an issue"** — one-click incident capture with full `uiContext` + `actionHistory` + transcript attached
+8. **KB self-correction** — agent gave the wrong RFQ "Closed" filter answer in live use → fixed in `troubleshooting.md`. The KB is a living artifact.
+9. **Rich button context** — `visibleButtons[]` carries `{ label, context, disabled }` + `pageTitles` + `triggerButton`, so the agent explains *why* Save was disabled
+10. **Deck shipped** — `deck.md` rendered by Marp during `pnpm build`, served at `/deck` on the same Vercel deploy
+
+> Full chronology in `timeline.md` — every commit, every decision.
 
 ---
 
@@ -103,15 +121,52 @@ Backup paths if anything wobbles:
 
 ## What's next — near-term
 
-**Agentic KB retrieval.** Today every KB file lands in the system prompt. Past ~6 files that wastes tokens and latency.
+**Agentic KB retrieval.** Today every KB file lands in the system prompt. Past ~6 files that wastes tokens and latency. Plan (`docs/agentic-kb.md`): inject only the TOC, let the model fetch what it needs.
 
-The plan (already specced in `docs/agentic-kb.md`):
+```
+┌─────────────────┐    ┌─────────────────────┐    ┌──────────────────────┐
+│ system prompt   │ ──>│ model picks doc(s)  │ ──>│ tool: readKbFile     │
+│ + 00-index.md   │    │ via tool call       │    │ (whitelisted name)   │
+│ (always loaded) │    └─────────────────────┘    └──────────────────────┘
+└─────────────────┘             ^                            │
+                                │                            v
+                                │            ┌──────────────────────┐
+                                └────────────│ file contents as     │
+                                             │ tool result          │
+                                             └──────────────────────┘
+                                                        │
+                                                        v
+                                             ┌──────────────────────┐
+                                             │ model answers using  │
+                                             │ doc(s) it fetched    │
+                                             └──────────────────────┘
+```
 
-- Inject only `00-index.md` — the table of contents
-- Give the model a `readKbFile(name)` tool
-- It picks which doc(s) to fetch, *then* answers
+**Demo-theater bonus:** stream the tool calls into the widget — *"Reading routing-map.md…"* — making the agent's "thinking" visible.
 
-**Demo-theater bonus:** stream the tool calls into the widget UI — *"Reading routing-map.md…"* — making the agent's "thinking" visible. Budgeted at ~45 min when we revisit.
+---
+
+## What's next — the KB builds itself
+
+Today the KB is hand-curated: we read CRM source and compressed it into 4 markdown files. **That doesn't scale past one host app.**
+
+Wire a GitHub integration: connect a repo, webhook on push, the agent fetches the diff, runs analysis queries against the new code, rewrites the relevant KB files. No human in the loop.
+
+```
+┌──────────────┐   push hook   ┌──────────────────────┐
+│  GitHub repo │ ─────────────>│  why-stuck backend   │
+│  (host app)  │               │   - fetch changes    │
+└──────────────┘               │   - LLM analyzes     │
+                               │   - regenerate KB    │
+                               └──────────┬───────────┘
+                                          v
+                               ┌──────────────────────┐
+                               │  knowledge-base/*.md │
+                               │  (auto-refreshed)    │
+                               └──────────────────────┘
+```
+
+The hackathon shortcut (KB by hand) becomes the production pattern (KB by agent) — same architecture downstream, the agent never knows the difference.
 
 ---
 

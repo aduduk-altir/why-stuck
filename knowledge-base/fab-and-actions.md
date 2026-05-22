@@ -34,10 +34,11 @@ This is the single most common navigation question, so it gets its own section. 
 4. Click the **FAB** (bottom-right floating round button) → choose **"Update Status"**.
 5. A modal opens for the new status (and sub-status if the chosen status requires one).
 
-Alternative click paths to the same modal:
-- **Right-click a single line row** → "Update Status" from the context menu.
+Alternative click path to the same modal:
 - **Selection action bar**: when rows are selected, an action bar appears at the bottom of the lines table with an "Update Status" button.
 - Reachable from anywhere RFQ lines are listed: RFQ list, RFQ Lines list, Account → RFQs tab, Project → RFQs tab, Opportunities list.
+
+Do **not** suggest right-click — see "Right-click does nothing useful" below.
 
 ### Update a single RFQ Line's status
 - Open the **RFQ Line Details** page → FAB → **"Update Status"**. Always visible (no row selection needed). Sub-status appears in the modal when required.
@@ -48,16 +49,14 @@ Alternative click paths to the same modal:
 
 ### Update a Sourcing Request's status
 - Open the **Sourcing Request Details** page → FAB → **"Update Status"**.
-- Also available via the row context menu on SR lists, and via the bulk selection action bar on the SR list.
+- For multiple SRs at once, use the bulk selection action bar on the SR list (select rows first).
 
 ### Update a Purchase Order's status
 **There is no Update Status action at the PO level** — PO status is derived from PO line statuses. To change it:
 - Open the **PO Line Details** page → FAB → **"Update Status"**.
-- Also available via the row context menu on PO line rows in the PO list.
 
 ### Update an Offer's status
 - Open the **Offer Details** page → FAB → **"Update Status"**.
-- Also available via the row context menu on any list that shows offers (Offers list, RFQ → Offers tab → Sourcing Requests/Open Offers tables, SR → Offers tab, Order Line → Offers tab).
 
 ### Update a Quote's status
 **There is no "Update Status" action for quotes anywhere.** Quote state changes happen implicitly when other actions are taken (e.g. when a Sales Order is created from the quote). On a Quote row you can Recommend / Unrecommend, Send, Edit, Duplicate, Create Sales Order, Attach Sales Order, or Delete — but not change a status field directly.
@@ -268,15 +267,16 @@ The Quotes table on the **RFQ Details → Quotes tab** (`/sales/rfqs/:rfqId/quot
 
 ---
 
-## Row context menus (right-click on a row)
+## Right-click does nothing useful
 
-When you right-click a row in a list, a menu appears with row-level actions. The most useful ones:
+**Right-click is not a supported interaction in this CRM.** Users should use **left-click only**. Do not tell users to right-click a row, "open the context menu", or "use the row menu" — there is no useful row context menu for them to reach that way.
 
-- **RFQ Lines table** — Update Status, Create Sourcing Request.
-- **Sourcing Request list** — Update Status (hidden in some embedded contexts like Order Line views).
-- **PO Lines on PO list** — Add Arrival, Update Status, Cancel Line, Cancel Purchase Order.
-- **Quote rows on RFQ → Quotes tab** — Duplicate Quote, Recommend / Unrecommend, Send Quote, Edit Quote, PDF actions, Create Sales Order, Attach Sales Order, Delete Quote. **No Update Status** for quotes anywhere.
-- **Offer rows on any offer list** — same menu as the Offer Details FAB; status-dependent.
+Every action a user might think of as a "row action" is reachable by left-click instead:
+
+- **To act on a single item** → left-click the row to open its Details page, then use the **FAB** (bottom-right floating button) on that page.
+- **To act on many items at once** → use the row's **checkbox** to select one or more rows, then use the **selection action bar** that appears at the bottom of the table.
+
+If a user is stuck because they tried right-clicking and "nothing happened" or the menu was empty, redirect them to one of the two left-click paths above. Whichever entity-specific actions they need are documented in the "FAB actions per entity" and "Selection action bars" sections above.
 
 ---
 
@@ -288,8 +288,9 @@ Some detail pages also show a smaller secondary pill of icon buttons stacked abo
 
 ## Things the agent should never say
 
-- **"There's an Update Status button at the top of the page."** There isn't. It's on the FAB (and sometimes the row menu / selection action bar).
+- **"There's an Update Status button at the top of the page."** There isn't. It's on the FAB (and sometimes the selection action bar).
 - **"Click the action menu near the top."** Most detail pages have no top action menu — actions are on the FAB.
 - **"Update the RFQ's status from the RFQ page."** The RFQ itself has no status field — instead, update its lines. Phrase this correctly.
 - **"Update Status for a Sales Order / Purchase Order."** Neither entity has a direct status-update action — they are derived from their lines.
 - **"Update Status for a Quote."** Quotes have no Update Status action at all.
+- **"Right-click the row…"** / **"Open the context menu…"** / **"Use the row menu…"** Right-click does nothing useful in this CRM. Always direct users to **left-click** the row (to open Details + use the FAB) or to the row **checkbox + selection action bar** for bulk actions.

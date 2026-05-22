@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   OPENAI_API_KEY: z.string().min(1, 'OPENAI_API_KEY is required'),
-  OPENAI_MODEL: z.string().default('gpt-4o-mini'),
+  OPENAI_MODEL: z.string().default('gpt-4.1-mini'),
 });
 
 const parsed = envSchema.safeParse(process.env);
