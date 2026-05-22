@@ -66,9 +66,7 @@ Two repos, talking over HTTP — deliberately not a monorepo:
 └────────────────────────────────────────┘         └───────────────────────────────┘
 ```
 
-**The widget is its own SDK** — today vendored into chip1-webui, tomorrow `pnpm add @altir/why-stuck-widget`. Backend is host-agnostic; any React app can install the SDK and point it at the same `/api/chat`.
-
-**No vector DB. No embeddings. No RAG framework.** The KB is markdown files concatenated into the system prompt.
+**Widget is its own SDK** — vendored today, `pnpm add @altir/why-stuck-widget` tomorrow. Backend is host-agnostic. **No vector DB, no RAG** — KB is markdown in the system prompt.
 
 ---
 
@@ -81,10 +79,10 @@ The agent never asks *"what page are you on?"* The payload tells it:
 | `url` / `pathname` | Where they are |
 | `formState` / `errors` | Live Formik values + validation messages |
 | `forms[]` | Every mounted form — disambiguates modal-over-page |
-| `visibleButtons[]` | Each button = `{ label, context, disabled }` so the agent can say "disabled Save (modal-footer)" |
-| `pageTitles` / `openModal` / `activeStep` | Document/h1/breadcrumbs/active tab + current modal + wizard step |
-| `actionHistory[]` | Last 20 user actions, chronological — the journey, no PII |
-| `trigger` / `triggerButton` | "user" / "rage-click" / "error-toast" + the full button info when rage-click fired |
+| `visibleButtons[]` | `{ label, context, disabled }` per button |
+| `pageTitles` / `openModal` / `activeStep` | Page title + open modal + wizard step |
+| `actionHistory[]` | Last 20 actions, chronological, no PII |
+| `trigger` / `triggerButton` | `user` / `rage-click` / `error-toast` (+ button) |
 
 > User: *"why can't I submit?"*
 > Agent: *"The Customer Edit modal's Email field is empty — fill it before clicking Save."*
@@ -93,16 +91,14 @@ The agent never asks *"what page are you on?"* The payload tells it:
 
 ## Build timeline
 
-1. **Scaffold + deploy** — Next.js 16 + AI SDK v6, `/api/chat` live on Vercel in the first hour
-2. **KB written** — `routing-map.md` (60+ URLs), `form-rules.md`, `troubleshooting.md`, `00-index.md` — CRM source compressed into 4 markdown files
-3. **Push-to-talk voice** — Web Speech API, interim transcripts type into the input live
-4. **Action history** — capture-phase DOM listeners + history-API patch + modal event bridge, capped at 20, no PII
-5. **Multi-form awareness** — `forms[]` enumerates every mounted form; `resolveFormName` keeps submit-capture and the form list aligned
-6. **Proactive rage-click trigger** — 3+ clicks on the same target opens the widget, server skips greeting and leads with the diagnosis
-7. **Sentry "Report an issue"** — one-click incident capture with full `uiContext` + `actionHistory` + transcript attached
-8. **KB self-correction** — agent gave the wrong RFQ "Closed" filter answer in live use → fixed in `troubleshooting.md`. The KB is a living artifact.
-9. **Rich button context** — `visibleButtons[]` carries `{ label, context, disabled }` + `pageTitles` + `triggerButton`, so the agent explains *why* Save was disabled
-10. **Deck shipped** — `deck.md` rendered by Marp during `pnpm build`, served at `/deck` on the same Vercel deploy
+1. **Scaffold + deploy** — Next.js 16 + AI SDK v6, `/api/chat` live on Vercel in hour one
+2. **KB compressed** into 4 markdown files — routing-map, form-rules, troubleshooting, index
+3. **Push-to-talk voice** — Web Speech API, interim transcripts type live
+4. **Action history** — 20-step journey, capture-phase listeners, no PII
+5. **Proactive rage-click trigger** — 3+ clicks open the widget mid-diagnosis
+6. **Rich button context** — every button carries `{ label, context, disabled }`
+7. **Sentry "Report an issue"** — one-click incident with full payload + transcript
+8. **Deck shipped** — Marp-rendered, served at `/deck` on the same Vercel deploy
 
 > Full chronology in `timeline.md` — every commit, every decision.
 
