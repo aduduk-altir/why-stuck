@@ -41,6 +41,19 @@ export const VisibleFormSchema = z.object({
   name: z.string(),
   label: z.string().optional(),
   fieldGroups: z.array(z.string()).optional(),
+  /**
+   * The form's own submit button (resolved by walking the `<form>` for a
+   * `[type="submit"]` descendant). Populated here even when the button is
+   * missed by `visibleButtons[]` (e.g. portaled outside the form's DOM scope,
+   * unusual selector). Treat this as the truthful disabled-state signal for
+   * "can this form be submitted right now".
+   */
+  submit: z
+    .object({
+      label: z.string(),
+      disabled: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 export type VisibleForm = z.infer<typeof VisibleFormSchema>;

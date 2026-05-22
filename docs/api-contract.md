@@ -125,8 +125,14 @@ type VisibleForm = {
   name: string;             // stable id — matches what a `submit` UiAction records in `target`
   label?: string;           // human-readable form title (modal title, section heading, fieldset legend)
   fieldGroups?: string[];   // names of field groups / fieldset legends / wizard step labels within the form
+  submit?: {                // the form's own submit button (resolved from `[type="submit"]` inside the form)
+    label: string;          // accessible name of the submit button (e.g. "Create Order", "Save")
+    disabled?: boolean;     // omit/false = enabled, true = disabled
+  };
 };
 ```
+
+`submit` is populated by walking the `<form>` element for a `[type="submit"]` descendant — so it appears here even when the same button slips past `visibleButtons[]` (portaled outside the form's DOM scope, unusual selector, etc.). When the model needs to answer "why can't this form be submitted," `forms[i].submit.disabled === true` is the authoritative signal for that specific form, regardless of what `visibleButtons[]` contains.
 
 ### `VisibleButton`
 
@@ -206,6 +212,14 @@ Content-Type: application/json
       "breadcrumbs": ["Customers", "Acme", "Edit"],
       "activeTab": "General"
     },
+    "forms": [
+      {
+        "name": "customer-edit",
+        "label": "Customer Edit",
+        "fieldGroups": ["General", "Addresses"],
+        "submit": { "label": "Save", "disabled": true }
+      }
+    ],
     "actionHistory": [
       { "type": "navigate", "target": "/customers/123", "timestamp": 1747900000000 },
       { "type": "click", "target": "Edit", "timestamp": 1747900005000 },
