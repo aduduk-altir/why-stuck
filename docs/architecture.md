@@ -141,12 +141,15 @@ That's it. It looks like a complex RAG system; it's `cat`.
 ## Execution Plan
 
 1. ✅ Scaffold backend (Next.js + TS + Tailwind + AI SDK) — **done**
-2. ⬜ Add `OPENAI_API_KEY` to `.env.local`
-3. ⬜ Write `src/app/api/chat/route.ts` (consult Next.js 16 docs first)
-4. ⬜ Configure CORS for the Vite dev origin
+2. ✅ Write `src/app/api/chat/route.ts` (zod-validated body, per-request KB, CORS)
+3. ✅ Lock the request/response contract in `docs/api-contract.md` (single source of truth for chip1 client)
+4. ⬜ Add `OPENAI_API_KEY` to `.env.local` (copy from `.env.example`)
 5. ⬜ Populate `knowledge-base/*.md` with real rules from the client app's domain
 6. ⬜ Add `<AgentWidget />` to the client SPA, scrape UI context, point at this backend
-7. ⬜ Deploy backend to Vercel; update client to call the prod URL
+7. ✅ Deploy backend to Vercel — live at `https://why-stuck.vercel.app/api/chat` (`OPENAI_API_KEY` set in Vercel project env)
+
+> **CORS allowlist** is `http://localhost:3020` and `*.chip1.info` (see `src/lib/cors.ts`).
+> Update the regex there if a new client origin appears.
 
 ## Open Questions
 

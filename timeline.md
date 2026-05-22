@@ -21,3 +21,7 @@ in what order".
 - Added project-level `/brainstorm` skill in `.claude/skills/brainstorm/` to load all docs and switch into exploratory mode.
 - Started `timeline.md` (this file) as the running demo cheat-sheet.
 - Documented the client repo coordinates (`../chip1-webui`, branch `feat/hackathon-why-stuck`, widget under `apps/crm/src/features/AgentWidget/`) and the subagent rule for working in that repo.
+- Installed `zod` and built the first `/api/chat` route: zod-validated body (`ChatRequestSchema`), per-request KB read, CORS allowlist for `localhost:3020` + `*.chip1.info`, streaming via AI SDK v6 `toUIMessageStreamResponse`.
+- Added `src/lib/env.ts` (zod-validated `process.env`), `src/lib/schemas.ts` (UiContext + ChatRequest), `src/lib/cors.ts` (origin matcher + preflight), and `.env.example`.
+- Wrote `docs/api-contract.md` as the single source of truth for the client/server contract — chip1-webui subagents must derive types from these schemas.
+- Pushed to GitHub (`git@github.com:aduduk-altir/why-stuck.git`, `main`) and deployed to Vercel at `https://why-stuck.vercel.app/` with `OPENAI_API_KEY` set in project env vars. Backend live.
