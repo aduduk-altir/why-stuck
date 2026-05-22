@@ -66,8 +66,6 @@ Two repos, talking over HTTP — deliberately not a monorepo:
 └────────────────────────────────────────┘         └───────────────────────────────┘
 ```
 
-**Widget is its own SDK** — vendored today, `pnpm add @altir/why-stuck-widget` tomorrow. Backend is host-agnostic. **No vector DB, no RAG** — KB is markdown in the system prompt.
-
 ---
 
 ## The `uiContext` payload — where the wow comes from
@@ -78,14 +76,23 @@ The agent never asks *"what page are you on?"* The payload tells it:
 | --- | --- |
 | `url` / `pathname` | Where they are |
 | `formState` / `errors` | Live Formik values + validation messages |
-| `forms[]` | Every mounted form — disambiguates modal-over-page |
 | `visibleButtons[]` | `{ label, context, disabled }` per button |
-| `pageTitles` / `openModal` / `activeStep` | Page title + open modal + wizard step |
 | `actionHistory[]` | Last 20 actions, chronological, no PII |
 | `trigger` / `triggerButton` | `user` / `rage-click` / `error-toast` (+ button) |
 
+Plus: `forms[]`, `pageTitles`, `openModal`, `activeStep` — every mounted form, page title, current modal, wizard step.
+
+---
+
+## What it feels like
+
 > User: *"why can't I submit?"*
+>
 > Agent: *"The Customer Edit modal's Email field is empty — fill it before clicking Save."*
+
+No screenshots attached. No *"which page are you on?"* No *"can you describe the error?"*
+
+The widget already knows — because the page told it before the user typed.
 
 ---
 
@@ -117,7 +124,7 @@ Backup paths if anything wobbles:
 
 ## What's next — near-term
 
-**Agentic KB retrieval.** Today every KB file lands in the system prompt. Past ~6 files that wastes tokens and latency. Plan (`docs/agentic-kb.md`): inject only the TOC, let the model fetch what it needs.
+**Agentic KB retrieval.** Inject only the TOC; model fetches what it needs via tool calls. Full-dump wastes tokens past ~6 docs.
 
 ```
 ┌─────────────────┐    ┌─────────────────────┐    ┌──────────────────────┐
@@ -138,15 +145,13 @@ Backup paths if anything wobbles:
                                              └──────────────────────┘
 ```
 
-**Demo-theater bonus:** stream the tool calls into the widget — *"Reading routing-map.md…"* — making the agent's "thinking" visible.
+**Bonus:** stream tool calls to the widget — *"Reading routing-map.md…"* — makes "thinking" visible.
 
 ---
 
 ## What's next — the KB builds itself
 
-Today the KB is hand-curated: we read CRM source and compressed it into 4 markdown files. **That doesn't scale past one host app.**
-
-Wire a GitHub integration: connect a repo, webhook on push, the agent fetches the diff, runs analysis queries against the new code, rewrites the relevant KB files. No human in the loop.
+Hand-curated KB doesn't scale past one host app. Wire a GitHub webhook → backend fetches the diff → LLM regenerates the relevant KB files. No human in the loop.
 
 ```
 ┌──────────────┐   push hook   ┌──────────────────────┐
@@ -162,7 +167,7 @@ Wire a GitHub integration: connect a repo, webhook on push, the agent fetches th
                                └──────────────────────┘
 ```
 
-The hackathon shortcut (KB by hand) becomes the production pattern (KB by agent) — same architecture downstream, the agent never knows the difference.
+Hackathon shortcut becomes the production pattern — agent never knows the difference.
 
 ---
 
