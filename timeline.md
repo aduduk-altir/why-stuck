@@ -25,3 +25,5 @@ in what order".
 - Added `src/lib/env.ts` (zod-validated `process.env`), `src/lib/schemas.ts` (UiContext + ChatRequest), `src/lib/cors.ts` (origin matcher + preflight), and `.env.example`.
 - Wrote `docs/api-contract.md` as the single source of truth for the client/server contract — chip1-webui subagents must derive types from these schemas.
 - Pushed to GitHub (`git@github.com:aduduk-altir/why-stuck.git`, `main`) and deployed to Vercel at `https://why-stuck.vercel.app/` with `OPENAI_API_KEY` set in project env vars. Backend live.
+- Researched chip1-webui CRM codebase and wrote 3 KB files: `routing-map.md` (60+ URL patterns), `form-rules.md` (all form fields + validation rules), `troubleshooting.md` (stuck-state resolution guide).
+- Replaced `rules.md` stub with `00-index.md` — agent overview + KB table of contents, loads first in the system prompt.
