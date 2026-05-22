@@ -5,10 +5,22 @@ chip1-webui widget and this backend.
 
 > **Rule for chip1-webui subagents:** When you build or modify the `AgentWidget` (or any
 > client-side code that talks to this backend), you must derive your request body type
-> and runtime validation from the zod schemas defined in `src/lib/schemas.ts` of this
-> repo (whyStuck). Either copy the schema file into chip1-webui or reproduce it verbatim
-> — but do not invent a parallel type definition that can drift. If the contract changes,
-> it changes here first; the client follows.
+> from this file. Either copy `src/lib/schemas.ts` from whyStuck verbatim, or — if chip1
+> can't take a `zod` dependency — mirror the shapes in this doc as TypeScript types only.
+> Do not invent a parallel type definition that can drift. If the contract changes, it
+> changes here first; the client follows.
+>
+> **Sharing this doc to the client is the canonical sync path:** copy `docs/api-contract.md`
+> into chip1-webui (or read it side-by-side) when working on the widget — it's the
+> human-readable source of truth that travels with the team. The zod schema is the
+> machine-readable source of truth and lives only on the server.
+>
+> **Runtime validation asymmetry (current state):** the server validates every request
+> with `ChatRequestSchema.safeParse` and returns `400` on drift. The chip1 client has no
+> `zod` dependency (CLAUDE.md there forbids new packages), so it mirrors the contract as
+> TS types only — no client-side `parse()` before sending. Drift gets caught on the wire,
+> not in the IDE. If you ever add `zod` to chip1, also wire a `UiContextSchema.parse()`
+> call into `scrapeUiContext()` to catch drift before the wire.
 
 ## Endpoint
 
@@ -41,17 +53,61 @@ messages via `convertToModelMessages` before sending to OpenAI.
 `passthrough()` zod object — the server preserves unknown keys and JSON-stringifies the
 whole thing into the system prompt. Recommended fields (all optional):
 
-| Field         | Type      | Example                                                                |
-| ------------- | --------- | ---------------------------------------------------------------------- |
-| `url`         | `string`  | `"https://crm.chip1.info/customers/123/edit"`                          |
-| `pathname`    | `string`  | `"/customers/123/edit"`                                                |
-| `formState`   | `unknown` | `{ name: "Acme", email: "" }` (e.g. `formikBag.values`)                |
-| `errors`      | `unknown` | `{ email: "Required" }` (e.g. `formikBag.errors`)                      |
-| `visibleText` | `string`  | Snippet of visible toast / banner / error-modal text                   |
+| Field            | Type            | Example                                                                |
+| ---------------- | --------------- | ---------------------------------------------------------------------- |
+| `url`            | `string`        | `"https://crm.chip1.info/customers/123/edit"`                          |
+| `pathname`       | `string`        | `"/customers/123/edit"`                                                |
+| `formState`      | `unknown`       | `{ name: "Acme", email: "" }` (e.g. `formikBag.values`)                |
+| `errors`         | `unknown`       | `{ email: "Required" }` (e.g. `formikBag.errors`)                      |
+| `visibleText`    | `string`        | Snippet of visible toast / banner / error-modal text                   |
+| `actionHistory`  | `UiAction[]`    | Last ≤20 user actions in chronological order (see below)               |
+| `openModal`      | `string\|null`  | Name/title of the currently open modal, or `null`                      |
+| `activeStep`     | `ActiveStep\|null` | Current step in a wizard, e.g. `{ name: "Review", index: 2, total: 4 }` |
+| `visibleButtons` | `string[]`      | Accessible names of buttons in the active focus region                 |
+| `forms`          | `VisibleForm[]` | All forms currently mounted on the page — see below                    |
 
 The widget can add any extra keys it wants (`route`, `userId`, `featureFlags`, …) — the
 server just inlines them into the prompt. Treat this as "stuff the model should see," not
 a typed API.
+
+### `UiAction`
+
+```ts
+type UiAction = {
+  type: 'navigate' | 'click' | 'submit' | 'modal-open' | 'modal-close';
+  target: string;     // button label, route name, modal title, form name
+  timestamp: number;  // Date.now()
+};
+```
+
+**Hard rules for action history:**
+
+- **No PII.** Record that a form was submitted, never the values. Live field values still
+  flow through `formState`.
+- **Cap at 20 entries.** Prompt token budget matters and older actions decay fast.
+- **Chronological order** (oldest first, newest last) so the model reads it as a story.
+
+### `ActiveStep`
+
+```ts
+type ActiveStep = {
+  name: string;            // human-readable step name, e.g. "PO Arrival Check — Review"
+  index?: number;          // zero-based
+  total?: number;          // total steps in the wizard
+};
+```
+
+### `VisibleForm`
+
+```ts
+type VisibleForm = {
+  name: string;             // stable id — matches what a `submit` UiAction records in `target`
+  label?: string;           // human-readable form title (modal title, section heading, fieldset legend)
+  fieldGroups?: string[];   // names of field groups / fieldset legends / wizard step labels within the form
+};
+```
+
+Used when **multiple forms can be mounted at once** — e.g. a Customer Edit modal opened over a Sales Order page. `formState` and `errors` remain a snapshot of the *focused* form, but `forms[]` enumerates every form on the page so the agent can disambiguate ("the email error is on the Customer modal, not the Sales Order form behind it"). The `name` field must match the `target` of a `submit` action so the model can correlate a submit event with the form definition.
 
 ## Example request
 
@@ -73,7 +129,16 @@ Content-Type: application/json
     "url": "http://localhost:3020/customers/123/edit",
     "pathname": "/customers/123/edit",
     "formState": { "name": "Acme", "email": "" },
-    "errors": { "email": "Email is required" }
+    "errors": { "email": "Email is required" },
+    "openModal": "Customer Edit",
+    "activeStep": null,
+    "visibleButtons": ["Save", "Cancel", "Delete"],
+    "actionHistory": [
+      { "type": "navigate", "target": "/customers/123", "timestamp": 1747900000000 },
+      { "type": "click", "target": "Edit", "timestamp": 1747900005000 },
+      { "type": "modal-open", "target": "Customer Edit", "timestamp": 1747900005100 },
+      { "type": "click", "target": "Save", "timestamp": 1747900030000 }
+    ]
   }
 }
 ```
