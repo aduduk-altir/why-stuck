@@ -8,6 +8,9 @@ in what order".
 
 ## 2026-05-22
 
+- Brainstormed the concept with ChatGPT + Gemini — settled on an in-app "I'm stuck" agent that scrapes UI context (URL + form state + errors) and answers from a markdown KB.
+- Pressure-tested the architecture options with ChatGPT/Gemini — picked the two-repo split (client widget in chip1-webui, Next.js backend here) over a monorepo or single-repo bot.
+- Switched to Claude Code to actually implement.
 - Bootstrapped repo: `pnpm create next-app` → Next.js 16 + TypeScript + Tailwind v4 + App Router + `src/` + ESLint.
 - Installed Vercel AI SDK + OpenAI provider (`ai`, `@ai-sdk/openai`).
 - Seeded `knowledge-base/rules.md` placeholder for the system-prompt KB injection pattern.
@@ -17,3 +20,4 @@ in what order".
 - Restructured `CLAUDE.md` after chip1-webui pattern — slim file + conditional-reading table linking to `docs/`.
 - Added project-level `/brainstorm` skill in `.claude/skills/brainstorm/` to load all docs and switch into exploratory mode.
 - Started `timeline.md` (this file) as the running demo cheat-sheet.
+- Documented the client repo coordinates (`../chip1-webui`, branch `feat/hackathon-why-stuck`, widget under `apps/crm/src/features/AgentWidget/`) and the subagent rule for working in that repo.

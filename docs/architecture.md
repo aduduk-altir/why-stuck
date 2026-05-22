@@ -30,6 +30,35 @@ Two separately-deployed repos, talking over HTTP:
 | Monorepo with `sdk` (npm) + `server`    | ✗              | Setup + internal linking + dual-deploy eats 1.5h of the 3h     |
 | Agent UI inside client + separate server| ✓ **chosen**   | Fastest to demo; clean deploy split; tiny backend surface area |
 
+## The Client Repo — coordinates
+
+The client lives **outside this repo** at `D:/projects/altir/chip1-webui` (sibling directory,
+referenced as `../chip1-webui`). It's a Turborepo monorepo (pnpm workspaces) — the relevant
+app is `apps/crm`.
+
+- **Working branch:** `feat/hackathon-why-stuck` — all widget work happens there. Don't touch
+  other branches in that repo.
+- **Widget location:** `apps/crm/src/features/AgentWidget/`
+- **Vite dev origin:** `http://localhost:3000` for `apps/crm` (check `apps/crm/vite.config.mts`
+  if the port differs — chip1's CLAUDE.md claims port 3000 for crm, 3009 for myChip1).
+- **Form library / state:** see `../chip1-webui/CLAUDE.md` and `.claude/docs/formik-patterns.md`.
+  Formik is the form layer — the widget will scrape form state via `useFormikContext`.
+
+### Working in chip1-webui from this session
+
+The user may ask to do work in `../chip1-webui` — usually widget code, context scraping,
+or wiring the client to call this backend.
+
+- **Default to a subagent** (general-purpose) scoped to `D:/projects/altir/chip1-webui`.
+  That repo has its own `CLAUDE.md` + extensive `.claude/docs/` patterns the subagent should
+  follow; loading them into this session would just pollute context.
+- Brief the subagent on (a) which branch (`feat/hackathon-why-stuck`), (b) what to build, and
+  (c) the API contract on the whyStuck side (current endpoint shape + uiContext payload).
+- Don't run `git checkout` in chip1-webui without explicit user direction. Assume the branch
+  is already correct.
+- After the subagent finishes, append a `timeline.md` entry here describing what shipped on
+  the client side — that's part of the demo story too.
+
 ## The Client (existing SPA, not this repo)
 
 - Add `<AgentWidget />` (floating bottom-right) using shadcn/ui.

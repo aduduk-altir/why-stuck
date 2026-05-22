@@ -11,6 +11,13 @@ exposing a single `/api/chat` endpoint that a separate Vite + React SPA calls to
 context-aware help. See `docs/architecture.md` for the full plan, the why-not-monorepo
 reasoning, and the execution checklist.
 
+**Client repo:** `../chip1-webui` (sibling dir), branch `feat/hackathon-why-stuck`, widget
+under `apps/crm/src/features/AgentWidget/`. When the user asks for changes there, default
+to a **general-purpose subagent** scoped to `D:/projects/altir/chip1-webui` — that repo has
+its own CLAUDE.md and `.claude/docs/` patterns the subagent should follow. Don't pull those
+into this session. Brief the subagent on the API contract + uiContext shape from this side.
+See `docs/architecture.md` → "Working in chip1-webui from this session" for the full rules.
+
 **Time budget:** 3-hour hackathon. Optimize for time-to-demo. Skip abstractions, skip
 RAG/vector DBs, skip anything that takes more than 5 minutes to debug.
 
